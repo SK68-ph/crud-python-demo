@@ -9,25 +9,25 @@ from mysql.connector import Error
 class Database:
     def __init__(self):
         try:
-            self.__connection = mysql.connector.connect(host='localhost',
+            self.__db = mysql.connector.connect(host='localhost',
                                                  database='productsdb',
                                                  user='root',
                                                  password='')
-            self.__cursor = self.__connection.cursor(named_tuple=True)
+            self.__cursor = self.__db.cursor(named_tuple=True)
             self.__cursor.execute("CREATE TABLE IF NOT EXISTS products (Id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,Name varchar(25) NOT NULL,Price float NOT NULL)")
-            self.__connection.commit()
+            self.__db.commit()
         except Error as e:
             print("Failed to initialize database.", e)
             time.sleep(3)
             quit()
 
-    def closeDB(self):
-        if self.checkConnection():
+    def close(self):
+        if self.isDbConnected():
             self.__cursor.close()
-            self.__connection.close()
+            self.__db.close()
 
-    def checkConnection(self):
-        if self.__connection.is_connected():
+    def isDbConnected(self):
+        if self.__db.is_connected():
             return True
         else:
             print("Database connection error.")
@@ -35,13 +35,13 @@ class Database:
             quit()
 
     def addProduct(self, name, price):
-        if self.checkConnection():
+        if self.isDbConnected():
             self.__cursor.execute(
                 f"insert into products SET Name='{name}',Price={price}")
-            self.__connection.commit()
+            self.__db.commit()
 
     def getProducts(self):
-        if self.checkConnection():
+        if self.isDbConnected():
             self.__cursor.execute("select * from products")
             data = []
             for row in self.__cursor:
@@ -50,15 +50,15 @@ class Database:
                     "ID", "Product Name", "Product Price"]), 0)
 
     def removeProduct(self, id):
-        if self.checkConnection():
+        if self.isDbConnected():
             self.__cursor.execute(f"DELETE FROM products WHERE id='{id}'")
-            self.__connection.commit()
+            self.__db.commit()
 
     def editProduct(self, id, name, price):
-        if self.checkConnection():
+        if self.isDbConnected():
             self.__cursor.execute(
                 f"update products SET Name='{name}',Price={price} WHERE id={id}")
-            self.__connection.commit()
+            self.__db.commit()
 
 # Typewriter effect
 def twPrint(text, speed=0.001):
@@ -105,7 +105,7 @@ while True:
             time.sleep(1)
 
         elif choice == 0:
-            db.closeDB()
+            db.close()
             print("Exiting.")
             time.sleep(3)
             break
